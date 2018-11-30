@@ -255,7 +255,7 @@ class Pagerfanta implements \Countable, \IteratorAggregate, PagerfantaInterface
     private function notAllowedCurrentPageOutOfRange($currentPage)
     {
         return !$this->getAllowOutOfRangePages() &&
-               $this->currentPageOutOfRange($currentPage);
+            $this->currentPageOutOfRange($currentPage);
     }
 
     private function currentPageOutOfRange($currentPage)
@@ -323,7 +323,11 @@ class Pagerfanta implements \Countable, \IteratorAggregate, PagerfantaInterface
 
     private function calculateOffsetForCurrentPageResults()
     {
-        return ($this->getCurrentPage() - 1) * $this->getMaxPerPage();
+        $offset = ($this->getCurrentPage() - 1) * $this->getMaxPerPage();
+        if ($this->adapter->getQuery()->getFirstResult()) {
+            $offset = $offset + $this->adapter->getQuery()->getFirstResult();
+        }
+        return $offset;
     }
 
     /**
@@ -334,8 +338,8 @@ class Pagerfanta implements \Countable, \IteratorAggregate, PagerfantaInterface
     public function getCurrentPageOffsetStart()
     {
         return $this->getNbResults() ?
-               $this->calculateOffsetForCurrentPageResults() + 1 :
-               0;
+            $this->calculateOffsetForCurrentPageResults() + 1 :
+            0;
     }
 
     /**
@@ -346,8 +350,8 @@ class Pagerfanta implements \Countable, \IteratorAggregate, PagerfantaInterface
     public function getCurrentPageOffsetEnd()
     {
         return $this->hasNextPage() ?
-               $this->getCurrentPage() * $this->getMaxPerPage() :
-               $this->getNbResults();
+            $this->getCurrentPage() * $this->getMaxPerPage() :
+            $this->getNbResults();
     }
 
     /**
@@ -358,7 +362,11 @@ class Pagerfanta implements \Countable, \IteratorAggregate, PagerfantaInterface
     public function getNbResults()
     {
         if ($this->notCachedNbResults()) {
-            $this->nbResults = $this->getAdapter()->getNbResults();
+            if ($this->adapter->getQuery()->getFirstResult()) {
+                $this->nbResults = $this->getAdapter()->getNbResults() - $this->adapter->getQuery()->getFirstResult();
+            } else {
+                $this->nbResults = $this->getAdapter()->getNbResults();
+            }
         }
 
         return $this->nbResults;
@@ -387,7 +395,7 @@ class Pagerfanta implements \Countable, \IteratorAggregate, PagerfantaInterface
 
     private function calculateNbPages()
     {
-        return (int) ceil($this->getNbResults() / $this->getMaxPerPage());
+        return (int)ceil($this->getNbResults() / $this->getMaxPerPage());
     }
 
     private function minimumNbPages()
@@ -490,7 +498,7 @@ class Pagerfanta implements \Countable, \IteratorAggregate, PagerfantaInterface
     private function toInteger($value)
     {
         if ($this->needsToIntegerConversion($value)) {
-            return (int) $value;
+            return (int)$value;
         }
 
         return $value;
@@ -498,7 +506,7 @@ class Pagerfanta implements \Countable, \IteratorAggregate, PagerfantaInterface
 
     private function needsToIntegerConversion($value)
     {
-        return (is_string($value) || is_float($value)) && (int) $value == $value;
+        return (is_string($value) || is_float($value)) && (int)$value == $value;
     }
 
     /**
@@ -522,6 +530,6 @@ class Pagerfanta implements \Countable, \IteratorAggregate, PagerfantaInterface
             ));
         }
 
-        return (int) ceil($position/$this->getMaxPerPage());
+        return (int)ceil($position / $this->getMaxPerPage());
     }
 }
