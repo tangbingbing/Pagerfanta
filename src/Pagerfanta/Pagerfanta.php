@@ -363,7 +363,8 @@ class Pagerfanta implements \Countable, \IteratorAggregate, PagerfantaInterface
     {
         if ($this->notCachedNbResults()) {
             if ($this->adapter->getQuery()->getFirstResult()) {
-                $this->nbResults = $this->getAdapter()->getNbResults() - $this->adapter->getQuery()->getFirstResult();
+                $nbResults = $this->getAdapter()->getNbResults() - $this->adapter->getQuery()->getFirstResult();
+                $this->nbResults = $nbResults > 0 ?: 0;
             } else {
                 $this->nbResults = $this->getAdapter()->getNbResults();
             }
